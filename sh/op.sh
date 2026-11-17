@@ -42,7 +42,9 @@ rm -rf package/porxy/daed package/porxy/luci-app-daed
   package/xd/smartdns/Makefile
 
 rm -rf feeds/luci/applications/{luci-app-dockerman,luci-app-samba4,luci-app-aria2,luci-app-diskman}
-rm -rf feeds/packages/net/{samba4,v2ray-geodata,mosdns,sing-box,aria2,ariang,adguardhome}
+# 保留 v2ray-geodata：NaiLink 的 daed-router 依赖 v2ray-geoip / v2ray-geosite，
+# 删掉它会导致依赖不满足，make defconfig 静默丢弃 CONFIG_PACKAGE_daed-router
+rm -rf feeds/packages/net/{samba4,mosdns,sing-box,aria2,ariang,adguardhome}
 
 # drop attendedsysupgrade
 sed -i '/luci-app-attendedsysupgrade/d' \

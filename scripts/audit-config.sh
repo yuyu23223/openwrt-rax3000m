@@ -26,8 +26,9 @@ echo "=== NaiLink 选择项 ==="
 for sym in CONFIG_PACKAGE_daed-router CONFIG_PACKAGE_luci-app-daed-router; do
   if grep -q "^${sym}=y" "$CFG"; then ok "$sym=y"; else err "$sym 未选中"; fi
 done
+# daed-router 的硬依赖：缺了它们 make defconfig 会静默丢掉 CONFIG_PACKAGE_daed-router
 for sym in CONFIG_PACKAGE_v2ray-geoip CONFIG_PACKAGE_v2ray-geosite; do
-  grep -q "^${sym}=y" "$CFG" && ok "$sym=y" || echo "  warn: $sym 未显式选中（可能作为依赖带入）"
+  grep -q "^${sym}=y" "$CFG" && ok "$sym=y" || err "$sym 未选中（daed-router 的依赖，检查 feeds/packages/net/v2ray-geodata 是否被删）"
 done
 
 echo
