@@ -86,19 +86,20 @@ cp "$CACHE/openwrt/network-check.sh" "$PKG/network-check.sh"
 
 # 官方默认 PKG_VERSION 可能已漂移（main 上是 0.6.86，而 tag 是 0.6.85），
 # 所以这里显式覆盖，并指向本地产物。
-cat > "$PKG/Makefile" <<EOF
-# 由 scripts/nailink-integrate.sh 生成，勿手改（改 nailink/Makefile 模板）
-DAED_VERSION:=$DAED_VERSION
-DAED_BINARY:=$DL/runtime/daed
-DAED_BTF_PROBE:=$DL/runtime/btf-probe
-DAED_LUCI_PROXY:=$DL/runtime/luci-proxy
-include ./official.mk
-EOF
-
-# 二进制的真实路径可能与上面不同（归档带目录），回填实际路径
-sed -i "s#^DAED_BINARY:=.*#DAED_BINARY:=$(find "$DL/runtime" -type f -name daed | head -1)#" "$PKG/Makefile"
-sed -i "s#^DAED_BTF_PROBE:=.*#DAED_BTF_PROBE:=$(find "$DL/runtime" -type f -name btf-probe | head -1)#" "$PKG/Makefile"
-sed -i "s#^DAED_LUCI_PROXY:=.*#DAED_LUCI_PROXY:=$(find "$DL/runtime" -type f -name luci-proxy | head -1)#" "$PKG/Makefile"
+#
+# 直接把官方 Makefile 拼成一个自包含的 Makefile：buildroot 的 dumpinfo 是
+# `make -C package/nailink` 跑的，include ./xxx.mk 这层间接一旦失败会被 scan
+# 静默吞掉（症状：.config 里 PACKAGE_daed-router 无声消失）。
+BIN_DAED=$(find "$DL/runtime" -type f -name daed | head -1)
+BIN_PROBE=$(find "$DL/runtime" -type f -name btf-probe | head -1)
+BIN_PROXY=$(find "$DL/runtime" -type f -name luci-proxy | head -1)
+{
+  echo "DAED_VERSION:=$DAED_VERSION"
+  echo "DAED_BINARY:=$BIN_DAED"
+  echo "DAED_BTF_PROBE:=$BIN_PROBE"
+  echo "DAED_LUCI_PROXY:=$BIN_PROXY"
+  cat "$PKG/official.mk"
+} > "$PKG/Makefile"
 
 echo "--- package/nailink/Makefile ---"
 cat "$PKG/Makefile"

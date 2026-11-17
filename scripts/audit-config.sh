@@ -24,7 +24,10 @@ fi
 echo
 echo "=== NaiLink 选择项 ==="
 for sym in CONFIG_PACKAGE_daed-router CONFIG_PACKAGE_luci-app-daed-router; do
-  if grep -q "^${sym}=y" "$CFG"; then ok "$sym=y"; else err "$sym 未选中"; fi
+  if grep -q "^${sym}=y" "$CFG"; then ok "$sym=y"; else
+    err "$sym 未选中"
+    echo "    排查：1) package/nailink/Makefile 是否存在 2) grep -c 'config PACKAGE_daed-router' \$SRC/tmp/.config-package.in"
+  fi
 done
 # daed-router 的硬依赖：缺了它们 make defconfig 会静默丢掉 CONFIG_PACKAGE_daed-router
 for sym in CONFIG_PACKAGE_v2ray-geoip CONFIG_PACKAGE_v2ray-geosite; do
@@ -43,8 +46,11 @@ fi
 
 echo
 echo "=== BPF / BTF / 内核能力 ==="
-grep -E '^CONFIG_(BPF_TOOLCHAIN|USE_LLVM_HOST|KERNEL_BPF|KERNEL_BPF_JIT|KERNEL_CGROUP_BPF|KERNEL_DEBUG_INFO_BTF|KERNEL_NET_INGRESS|KERNEL_XDP_SOCKETS)=' "$CFG" || true
-for sym in CONFIG_KERNEL_BPF CONFIG_KERNEL_BPF_JIT CONFIG_KERNEL_CGROUP_BPF CONFIG_KERNEL_DEBUG_INFO_BTF; do
+grep -E '^CONFIG_(BPF_TOOLCHAIN|USE_LLVM_HOST|KERNEL_BPF_EVENTS|KERNEL_CGROUP_BPF|KERNEL_LWTUNNEL_BPF|KERNEL_DEBUG_INFO_BTF|KERNEL_NET_INGRESS|KERNEL_XDP_SOCKETS)=' "$CFG" || true
+# 注意：这棵内核树里没有 CONFIG_KERNEL_BPF / KERNEL_BPF_JIT 这两个符号
+# （config/Config-kernel.in 只有 KERNEL_BPF_EVENTS / KERNEL_CGROUP_BPF /
+#  KERNEL_LWTUNNEL_BPF / KERNEL_BPF_KPROBE_OVERRIDE），写错会误报。
+for sym in CONFIG_KERNEL_BPF_EVENTS CONFIG_KERNEL_CGROUP_BPF CONFIG_KERNEL_DEBUG_INFO_BTF; do
   grep -q "^${sym}=y" "$CFG" && ok "$sym" || err "$sym 未开（NaiLink 需要 BPF+BTF）"
 done
 

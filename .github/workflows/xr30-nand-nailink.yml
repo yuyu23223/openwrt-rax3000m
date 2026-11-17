@@ -336,6 +336,14 @@ jobs:
       run: |
         cd "$SOURCE_NAME"
         make defconfig
+
+        # NaiLink 索引诊断：确认 buildroot 真的把 package/nailink 扫进去了
+        echo "=== NaiLink 索引诊断 ==="
+        echo -n "tmp/.config-package.in 里 PACKAGE_daed-router 条目数: "
+        grep -c 'config PACKAGE_daed-router' tmp/.config-package.in || true
+        grep -i 'nailink' tmp/.packageinfo 2>/dev/null | head -5 || echo "  tmp/.packageinfo 里没有 nailink"
+        ls -la package/nailink/Makefile 2>/dev/null || echo "  package/nailink/Makefile 不见了"
+
         bash "$GITHUB_WORKSPACE/scripts/audit-config.sh" --post-defconfig
         make download -j8
         find dl -size -1024c -exec ls -l {} \; || true
