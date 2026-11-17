@@ -29,10 +29,9 @@ echo "=== 1. 取 NaiLink 包定义（openwrt/ 下的 Makefile + files + htdocs�
 if [ ! -d "$CACHE/.git" ]; then
   mkdir -p "$(dirname "$CACHE")"
   rm -rf "$CACHE"
-  git clone --depth 1 --branch "$NAILINK_TAG" --filter=blob:none --sparse \
+  # 不能用 --sparse：cone 模式只接受目录，传 "openwrt/Makefile" 会报 not a directory
+  git clone --depth 1 --branch "$NAILINK_TAG" --filter=blob:none\
     https://github.com/slobys/NaiLink "$CACHE"
-  git -C "$CACHE" sparse-checkout set openwrt/Makefile openwrt/install.sh \
-    openwrt/network-check.sh openwrt/files openwrt/htdocs
 fi
 echo "NaiLink commit: $(git -C "$CACHE" rev-parse HEAD)"
 grep -nE 'PKG_NAME|PKG_VERSION|CONFLICTS|DEPENDS' "$CACHE/openwrt/Makefile"
