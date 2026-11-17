@@ -1,0 +1,14 @@
+# NaiLink 面板的 CGI 网关。
+# 本固件的 LuCI 跑在 nginx + uwsgi 上（不是 uhttpd），nginx 默认只把
+# /cgi-bin/luci 和 /cgi-bin/cgi-* 交给 uwsgi，/cgi-bin/daed-router 会被当成
+# 静态文件原样返回脚本源码 —— 表现就是 NaiLink 页面报错/白屏。
+# 这里按同样的 uwsgi CGI 方式（modifier1 9）补一条 location。
+location ~ ^/cgi-bin/daed-router {
+	include uwsgi_params;
+	uwsgi_param SERVER_ADDR $server_addr;
+	uwsgi_modifier1 9;
+	uwsgi_send_timeout 300;
+	uwsgi_connect_timeout 300;
+	uwsgi_read_timeout 300;
+	uwsgi_pass unix:////var/run/luci-webui.socket;
+}
